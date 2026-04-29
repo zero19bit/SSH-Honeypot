@@ -1,0 +1,110 @@
+2026-05-02 18:39:48,889 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 18:39:54,843 - [+] Connection from 192.168.1.106:56128
+2026-05-02 18:39:54,867 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 18:39:55,151 - Error handling ('192.168.1.106', 56128): 
+2026-05-02 18:40:40,411 - [+] Connection from 192.168.1.106:59018
+2026-05-02 18:40:40,443 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 18:40:44,200 - Auth rejected (none).
+2026-05-02 18:40:52,197 - [!] Login attempt: root:1234
+2026-05-02 18:40:52,197 - Auth rejected (password).
+2026-05-02 18:40:56,793 - [!] Login attempt: root:1234
+2026-05-02 18:40:56,793 - Auth rejected (password).
+2026-05-02 19:06:55,744 - [!] Shutting down...
+2026-05-02 19:06:59,471 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 19:07:09,039 - [+] Connection from 192.168.1.106:55176
+2026-05-02 19:07:09,113 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 19:07:13,443 - Auth rejected (none).
+2026-05-02 19:07:16,248 - [!] Login attempt: root:5852
+2026-05-02 19:07:16,248 - Auth rejected (password).
+2026-05-02 19:07:20,966 - [!] Login attempt: root:5852
+2026-05-02 19:07:20,966 - Auth rejected (password).
+2026-05-02 19:07:23,224 - [!] Login attempt: root:5852
+2026-05-02 19:07:23,225 - Auth rejected (password).
+2026-05-02 19:07:43,934 - [!] Shutting down...
+2026-05-02 19:17:54,804 - [*] Generating new host key and saving...
+2026-05-02 19:17:54,884 - [+] Honeypot listening on 0.0.0.0:2222 with fixed host key
+2026-05-02 19:18:04,197 - [+] Connection from 192.168.1.106:51650
+2026-05-02 19:18:04,197 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 19:18:07,986 - Auth rejected (none).
+2026-05-02 19:18:14,221 - [!] Login attempt: root:123456
+2026-05-02 19:18:14,221 - [+] Authentication SUCCESS for root (fake shell will be given)
+2026-05-02 19:18:14,221 - Auth granted (password).
+2026-05-02 19:18:48,126 - [!] Shutting down...
+2026-05-02 19:21:00,234 - [*] Loading existing host key...
+2026-05-02 19:21:00,267 - [+] Honeypot listening on 0.0.0.0:2222 with fixed host key
+2026-05-02 19:21:09,951 - [+] Connection from 192.168.1.106:46392
+2026-05-02 19:21:09,952 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 19:21:09,960 - Auth rejected (none).
+2026-05-02 19:21:19,350 - [!] Login attempt: root:123456
+2026-05-02 19:21:19,350 - [+] Authentication SUCCESS for root (fake shell will be given)
+2026-05-02 19:21:19,350 - Auth granted (password).
+2026-05-02 19:21:19,372 - [+] Channel opened from ('192.168.1.106', 46392), starting fake shell
+2026-05-02 19:21:36,108 - [!] Shutting down...
+2026-05-02 19:27:23,336 - [*] Loading existing host key...
+2026-05-02 19:27:23,365 - [+] Honeypot listening on 0.0.0.0:2222 with fixed host key
+2026-05-02 19:27:26,170 - [+] Connection from 192.168.1.106:59582
+2026-05-02 19:27:26,171 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 19:27:26,179 - Auth rejected (none).
+2026-05-02 19:27:29,729 - [!] Login attempt: root:123456
+2026-05-02 19:27:29,729 - [+] Authentication SUCCESS for root (fake shell will be given)
+2026-05-02 19:27:29,729 - Auth granted (password).
+2026-05-02 19:27:29,755 - [+] Channel opened from ('192.168.1.106', 59582), fake shell thread running
+2026-05-02 19:27:40,705 - [!] Shutting down...
+2026-05-02 20:04:57,890 - [*] Loading existing host key...
+2026-05-02 20:04:57,921 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:05:03,489 - [+] Connection from 192.168.1.106:35666
+2026-05-02 20:05:03,490 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:05:03,498 - Auth rejected (none).
+2026-05-02 20:05:06,576 - [!] Login attempt: root:123456
+2026-05-02 20:05:06,577 - [+] Authentication SUCCESS for root (fake shell will be given)
+2026-05-02 20:05:06,577 - Auth granted (password).
+2026-05-02 20:05:06,660 - [+] Channel opened from ('192.168.1.106', 35666), waiting for shell request...
+2026-05-02 20:05:17,175 - [!] Shutting down...
+2026-05-02 20:07:36,851 - [*] Loading existing host key...
+2026-05-02 20:07:36,883 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:07:41,593 - [+] Connection from 192.168.1.106:55520
+2026-05-02 20:07:41,594 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:07:41,602 - Auth rejected (none).
+2026-05-02 20:07:45,136 - [!] Login attempt: root:123456
+2026-05-02 20:07:45,136 - [+] Authentication SUCCESS for root
+2026-05-02 20:07:45,136 - Auth granted (password).
+2026-05-02 20:07:45,178 - [+] Channel opened, waiting for shell request...
+2026-05-02 20:07:50,178 - [-] Shell request not received within 5 seconds, closing
+2026-05-02 20:07:55,005 - [!] Shutting down...
+2026-05-02 20:20:30,662 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:20:32,871 - [+] Connection from 192.168.1.106:46394
+2026-05-02 20:20:32,899 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:20:32,983 - Error handling ('192.168.1.106', 46394): 
+2026-05-02 20:20:46,239 - [!] Shutting down...
+2026-05-02 20:22:08,724 - [*] Loading existing host key...
+2026-05-02 20:22:08,755 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:22:11,996 - [+] Connection from 192.168.1.106:42142
+2026-05-02 20:22:11,997 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:22:12,005 - Auth rejected (none).
+2026-05-02 20:22:17,769 - [!] Login attempt: root:123456
+2026-05-02 20:22:17,769 - [+] Authentication SUCCESS (fake shell will be given)
+2026-05-02 20:22:17,769 - Auth granted (password).
+2026-05-02 20:22:17,831 - [+] Channel opened, waiting for shell request...
+2026-05-02 20:22:22,831 - [-] Shell request not received, closing
+2026-05-02 20:24:19,770 - [!] Shutting down...
+2026-05-02 20:24:21,064 - [*] Loading existing host key...
+2026-05-02 20:24:21,096 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:24:29,415 - [+] Connection from 192.168.1.106:48708
+2026-05-02 20:24:29,416 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:24:29,424 - Auth rejected (none).
+2026-05-02 20:24:32,142 - [!] Login attempt: root:123456
+2026-05-02 20:24:32,142 - [+] Authentication SUCCESS (no shell)
+2026-05-02 20:24:32,142 - Auth granted (password).
+2026-05-02 20:24:32,183 - [+] Connection closed for 192.168.1.106:48708
+2026-05-02 20:35:10,176 - [!] Shutting down...
+2026-05-02 20:36:48,194 - [+] Honeypot listening on 0.0.0.0:2222
+2026-05-02 20:36:54,481 - [+] Connection from 192.168.1.106:43420
+2026-05-02 20:36:54,481 - Connected (version 2.0, client OpenSSH_10.2p1)
+2026-05-02 20:36:54,501 - Auth rejected (none).
+2026-05-02 20:36:56,931 - [!] Login attempt: root:123456
+2026-05-02 20:36:56,932 - Auth rejected (password).
+2026-05-02 20:36:59,481 - [!] Login attempt: root:1234556
+2026-05-02 20:36:59,482 - Auth rejected (password).
+2026-05-02 20:37:02,128 - [!] Login attempt: root:222521
+2026-05-02 20:37:02,128 - Auth rejected (password).
+2026-05-02 20:37:07,910 - [!] Shutting down...
