@@ -1,0 +1,20 @@
+include .dockerignore
+include conftest.py
+include pytest.ini
+include .env.example
+include .gitignore
+include CHANGELOG.md
+include Makefile
+include Dockerfile
+include OPERATIONS.md
+include README.md
+include RELEASE.md
+include SECURITY.md
+include compose.yaml
+include requirements.in
+include requirements.lock
+include requirements.txt
+include requirements-dev.txt
+recursive-include .github *.yml
+recursive-include tests *.py
+recursive-include tools *.py

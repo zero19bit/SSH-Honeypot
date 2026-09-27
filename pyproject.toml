@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fake-ubuntu-ssh-honeypot"
+version = "3.0.1"
+description = "A fully simulated Ubuntu 22.04 SSH honeypot"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["paramiko==5.0.0"]
+keywords = ["honeypot", "ssh", "paramiko", "security", "deception"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.0.2", "pip-audit==2.9.0"]
+
+[project.scripts]
+ssh-honeypot = "honeypot.main:main"
+ssh-honeypot-keygen = "honeypot.keygen:main"
+
+[tool.setuptools.packages.find]
+include = ["honeypot*"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

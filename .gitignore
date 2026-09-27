@@ -1,0 +1,12 @@
+.env
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.log
+host-key.b64
+dist/
+build/
+*.egg-info/
+ubuntu-ssh-honeypot-*.zip
+
