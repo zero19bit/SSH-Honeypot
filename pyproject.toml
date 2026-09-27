@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest==9.0.2", "pip-audit==2.9.0"]
+test = ["pytest==9.1.1", "pip-audit==2.9.0"]
 
 [project.scripts]
 ssh-honeypot = "honeypot.main:main"
