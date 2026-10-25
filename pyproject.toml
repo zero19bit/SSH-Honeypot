@@ -8,7 +8,7 @@ version = "3.0.1"
 description = "A fully simulated Ubuntu 22.04 SSH honeypot"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["paramiko==5.0.0"]
+dependencies = ["paramiko==5.1.0"]
 keywords = ["honeypot", "ssh", "paramiko", "security", "deception"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
